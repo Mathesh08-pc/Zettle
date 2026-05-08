@@ -86,7 +86,20 @@
         if (!course) window.location.href = `semester.html?sem=${semNum}`;
 
         const courseIndex = sem.courses.indexOf(course);
-        const materials = MATERIALS[courseCode] || [];
+        const baseMaterials = MATERIALS[courseCode] || [];
+        
+        // Merge locally uploaded files from the developer dashboard
+        const localUploads = JSON.parse(localStorage.getItem('zettle_uploads') || '[]')
+            .filter(u => u.courseCode === courseCode)
+            .map(u => ({
+                name: u.name,
+                category: u.category,
+                type: u.type,
+                desc: u.desc,
+                file: u.fileData || u.file // Use base64 data if available so it works locally before commit
+            }));
+            
+        const materials = [...localUploads, ...baseMaterials];
 
         // Update page info
         document.title = `${course.title} — Zettle`;

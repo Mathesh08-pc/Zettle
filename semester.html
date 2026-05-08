@@ -81,7 +81,11 @@
         const grid = document.getElementById('subjects-grid');
 
         sem.courses.forEach((course, i) => {
-            const materials = MATERIALS[course.code] || [];
+            const baseMaterials = MATERIALS[course.code] || [];
+            const localUploads = JSON.parse(localStorage.getItem('zettle_uploads') || '[]')
+                .filter(u => u.courseCode === course.code);
+            const materials = [...localUploads, ...baseMaterials];
+
             const hasQP = materials.some(m => m.category === 'qp');
             const hasNotes = materials.some(m => m.category === 'notes');
 
