@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Developer Access — Zettle</title>
+    <meta name="description" content="Developer login portal for Zettle study hub.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="login-page" id="login-page">
+        <div class="login-card">
+            <!-- Card Header -->
+            <div class="login-card-header">
+                <span class="login-logo">Zettle</span>
+                <span class="login-dev-badge">&gt;_ DEVELOPER ACCESS</span>
+            </div>
+
+            <!-- Card Body -->
+            <div class="login-card-body">
+                <h1 class="login-title">Sign in</h1>
+                <p class="login-subtitle">Restricted to authorized developers only.</p>
+
+                <form id="login-form" onsubmit="return false;">
+                    <div class="login-field">
+                        <label class="login-label" for="login-username">USERNAME</label>
+                        <input type="text" class="login-input" id="login-username" placeholder="Enter username" autocomplete="off" spellcheck="false">
+                    </div>
+
+                    <div class="login-field">
+                        <label class="login-label" for="login-password">PASSWORD</label>
+                        <div class="login-input-wrap">
+                            <input type="password" class="login-input" id="login-password" placeholder="Enter password" autocomplete="off">
+                            <button class="login-eye-btn" id="toggle-pwd" type="button" aria-label="Toggle password visibility">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                    <circle cx="12" cy="12" r="3"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="login-error" id="login-error"></div>
+
+                    <button class="login-submit-btn" id="login-btn" type="submit">SIGN IN →</button>
+                </form>
+            </div>
+
+            <!-- Card Footer -->
+            <div class="login-card-footer">
+                <p>This portal is for authorized administrators only.</p>
+            </div>
+        </div>
+
+        <a href="index.html" class="login-back-link">← Back to Zettle</a>
+    </div>
+
+    <script>
+        // Already authenticated? Go to dashboard
+        if (sessionStorage.getItem('zettle_auth') === 'true') {
+            window.location.href = 'dashboard.html';
+        }
+
+        // Toggle password visibility
+        const toggleBtn = document.getElementById('toggle-pwd');
+        const pwdInput = document.getElementById('login-password');
+        toggleBtn.addEventListener('click', () => {
+            const isHidden = pwdInput.type === 'password';
+            pwdInput.type = isHidden ? 'text' : 'password';
+            toggleBtn.innerHTML = isHidden
+                ? '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>'
+                : '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+        });
+
+        // Login handler
+        document.getElementById('login-form').addEventListener('submit', handleLogin);
+        function handleLogin() {
+            const username = document.getElementById('login-username').value.trim();
+            const password = document.getElementById('login-password').value.trim();
+            const errorEl = document.getElementById('login-error');
+
+            if (!username || !password) {
+                errorEl.textContent = 'Please fill in all fields.';
+                errorEl.classList.add('visible');
+                return;
+            }
+
+            if (username === 'admin' && password === 'admin') {
+                sessionStorage.setItem('zettle_auth', 'true');
+                // Quick success animation
+                const card = document.querySelector('.login-card');
+                card.style.borderColor = 'var(--accent)';
+                card.style.boxShadow = '0 0 40px rgba(76,175,80,0.2)';
+                setTimeout(() => { window.location.href = 'dashboard.html'; }, 300);
+            } else {
+                errorEl.textContent = 'Invalid credentials. Try again.';
+                errorEl.classList.add('visible');
+                // Shake animation
+                const card = document.querySelector('.login-card');
+                card.classList.add('shake');
+                setTimeout(() => card.classList.remove('shake'), 500);
+            }
+        }
+    </script>
+</body>
+</html>
