@@ -69,6 +69,34 @@ const SEMESTERS = {
             { code: "EI3564", title: "Industrial Instrumentation Laboratory" },
             { code: "EI3565", title: "Process Control Laboratory" }
         ]
+    },
+    6: {
+        title: "Semester 6",
+        courses: [
+            { code: "EI3661", title: "IOT Concepts and Applications" },
+            { code: "EI3662", title: "Data Structures" },
+            { code: "EI3663", title: "Embedded Systems" },
+            { code: "EI3664", title: "Data Structures Laboratory" },
+            { code: "EI3665", title: "Professional Communication Laboratory" },
+            { code: "EI3666", title: "Mini Project" }
+        ]
+    },
+    7: {
+        title: "Semester 7",
+        courses: [
+            { code: "EI3761", title: "Applied Machine Learning" },
+            { code: "EI3762", title: "Industrial Data Networks" },
+            { code: "GE3791", title: "Human Values and Ethics" },
+            { code: "EI3763", title: "Instrumentation System Design Laboratory" },
+            { code: "EI3764", title: "Internship" },
+            { code: "EI3765", title: "System Identification, Modeling and Simulation Laboratory" }
+        ]
+    },
+    8: {
+        title: "Semester 8",
+        courses: [
+            { code: "EI3861", title: "Project Work" }
+        ]
     }
 };
 
