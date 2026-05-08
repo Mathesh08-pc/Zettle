@@ -102,7 +102,7 @@
 
         async function fetchSupabaseMaterials() {
             try {
-                const { data, error } = await supabase
+                const { data, error } = await supabaseClient
                     .from('materials')
                     .select('*')
                     .eq('course_code', courseCode)
