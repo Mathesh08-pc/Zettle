@@ -143,6 +143,8 @@
     <!-- Toast -->
     <div class="dash-toast" id="dash-toast"></div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase.js"></script>
     <script src="data.js"></script>
     <script>
         // ===== AUTH GUARD =====
@@ -251,57 +253,70 @@
         // ===== SAVE & UPLOAD =====
         document.getElementById('dash-save-btn').addEventListener('click', saveUpload);
 
-        function saveUpload() {
+        async function saveUpload() {
             const fileName = document.getElementById('dash-filename').value.trim();
             const subject = document.getElementById('dash-subject').value;
             const year = document.getElementById('dash-year').value.trim();
             const desc = document.getElementById('dash-desc').value.trim();
 
-            // Validate
             if (!fileName) return showToast('Please enter a file name.', 'error');
             if (!subject) return showToast('Please select a subject.', 'error');
             if (!selectedFile) return showToast('Please select a file to upload.', 'error');
 
             const ext = selectedFile.name.split('.').pop().toLowerCase();
             const fileType = ['png','jpg','jpeg','webp','gif','svg'].includes(ext) ? 'img' : (ext === 'pdf' ? 'pdf' : 'doc');
-
+            
             const sem = SEMESTERS[selectedSem];
             const course = sem.courses.find(c => c.code === subject);
             const categoryLabels = { qp: 'Question Paper', notes: 'Notes', other: 'Other Material' };
-
-            // Build display name
             const displayName = fileName + (year ? ' — ' + year : '');
-            const filePath = `materials/sem${selectedSem}/${subject}/${fileName.replace(/[^a-zA-Z0-9_\- ]/g, '_').replace(/\s+/g, '_').toLowerCase()}.${ext}`;
+            
+            const safeName = fileName.replace(/[^a-zA-Z0-9_\- ]/g, '_').replace(/\s+/g, '_').toLowerCase();
+            const filePath = `sem${selectedSem}/${subject}/${Date.now()}_${safeName}.${ext}`;
 
-            // Read file as base64 for storage
-            const reader = new FileReader();
-            reader.onload = function () {
-                const upload = {
-                    id: Date.now(),
+            // Show loading state
+            const btn = document.getElementById('dash-save-btn');
+            const originalBtnHtml = btn.innerHTML;
+            btn.innerHTML = 'UPLOADING...';
+            btn.disabled = true;
+
+            try {
+                // 1. Upload file to Supabase Storage
+                const { data: fileData, error: fileError } = await supabase.storage
+                    .from('files')
+                    .upload(filePath, selectedFile);
+                    
+                if (fileError) throw fileError;
+
+                // Get public URL
+                const { data: urlData } = supabase.storage.from('files').getPublicUrl(filePath);
+                const fileUrl = urlData.publicUrl;
+
+                // 2. Insert metadata into Supabase Database
+                const { error: dbError } = await supabase.from('materials').insert([{
                     name: displayName,
-                    desc: desc || `${categoryLabels[selectedType]}${year ? ' · ' + year : ''}`,
-                    file: filePath,
-                    type: fileType,
+                    description: desc || `${categoryLabels[selectedType]}${year ? ' · ' + year : ''}`,
+                    file_url: fileUrl,
+                    file_type: fileType,
                     category: selectedType,
                     semester: selectedSem,
-                    courseCode: subject,
-                    courseTitle: course ? course.title : subject,
-                    originalFileName: selectedFile.name,
-                    fileSize: selectedFile.size,
-                    fileData: reader.result,
-                    uploadedAt: new Date().toISOString()
-                };
+                    course_code: subject,
+                    course_title: course ? course.title : subject,
+                    file_size: selectedFile.size
+                }]);
 
-                // Save to localStorage
-                const uploads = JSON.parse(localStorage.getItem(UPLOAD_KEY) || '[]');
-                uploads.unshift(upload);
-                localStorage.setItem(UPLOAD_KEY, JSON.stringify(uploads));
+                if (dbError) throw dbError;
 
-                showToast('Material saved successfully!', 'success');
+                showToast('Material uploaded successfully!', 'success');
                 resetForm();
                 renderUploads();
-            };
-            reader.readAsDataURL(selectedFile);
+            } catch (err) {
+                console.error('Upload error:', err);
+                showToast('Error uploading: ' + err.message, 'error');
+            } finally {
+                btn.innerHTML = originalBtnHtml;
+                btn.disabled = false;
+            }
         }
 
         function resetForm() {
@@ -317,55 +332,79 @@
         }
 
         // ===== UPLOADED FILES =====
-        function renderUploads() {
-            const uploads = JSON.parse(localStorage.getItem(UPLOAD_KEY) || '[]');
+        async function renderUploads() {
             const list = document.getElementById('dash-files-list');
-            const filtered = fileFilter === 'all' ? uploads : uploads.filter(u => u.category === fileFilter);
+            list.innerHTML = '<div class="dash-files-empty"><p>Loading files from Supabase...</p></div>';
 
-            // Update stats
-            document.getElementById('dash-files-count').textContent = uploads.length;
-            document.getElementById('stat-all').textContent = uploads.length;
-            document.getElementById('stat-qp').textContent = uploads.filter(u => u.category === 'qp').length;
-            document.getElementById('stat-notes').textContent = uploads.filter(u => u.category === 'notes').length;
-            document.getElementById('stat-other').textContent = uploads.filter(u => u.category === 'other').length;
+            try {
+                let query = supabase.from('materials').select('*').order('created_at', { ascending: false });
+                if (fileFilter !== 'all') {
+                    query = query.eq('category', fileFilter);
+                }
 
-            if (filtered.length === 0) {
-                list.innerHTML = `
-                    <div class="dash-files-empty">
-                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                        <p class="dash-empty-title">No uploads yet</p>
-                        <p class="dash-empty-hint">Upload your first file using the form.</p>
-                    </div>`;
-                return;
-            }
+                const { data: uploads, error } = await query;
+                if (error) throw error;
 
-            list.innerHTML = filtered.map(u => `
-                <div class="dash-file-item" data-id="${u.id}">
-                    <div class="dash-file-icon">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                // Update stats (Need to fetch counts)
+                const { count: allCount } = await supabase.from('materials').select('*', { count: 'exact', head: true });
+                const { count: qpCount } = await supabase.from('materials').select('*', { count: 'exact', head: true }).eq('category', 'qp');
+                const { count: notesCount } = await supabase.from('materials').select('*', { count: 'exact', head: true }).eq('category', 'notes');
+                const { count: otherCount } = await supabase.from('materials').select('*', { count: 'exact', head: true }).eq('category', 'other');
+
+                document.getElementById('dash-files-count').textContent = allCount || 0;
+                document.getElementById('stat-all').textContent = allCount || 0;
+                document.getElementById('stat-qp').textContent = qpCount || 0;
+                document.getElementById('stat-notes').textContent = notesCount || 0;
+                document.getElementById('stat-other').textContent = otherCount || 0;
+
+                if (!uploads || uploads.length === 0) {
+                    list.innerHTML = `
+                        <div class="dash-files-empty">
+                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                            <p class="dash-empty-title">No uploads yet</p>
+                            <p class="dash-empty-hint">Upload your first file using the form.</p>
+                        </div>`;
+                    return;
+                }
+
+                list.innerHTML = uploads.map(u => `
+                    <div class="dash-file-item" data-id="${u.id}">
+                        <div class="dash-file-icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                        </div>
+                        <div class="dash-file-info">
+                            <div class="dash-file-title">${u.name}</div>
+                            <div class="dash-file-meta">Sem ${u.semester} · ${u.course_code} · ${u.file_type.toUpperCase()}</div>
+                        </div>
+                        <span class="dash-file-cat-badge dash-cat-${u.category}">${u.category.toUpperCase()}</span>
+                        <button class="dash-file-del" data-id="${u.id}" data-url="${u.file_url}" title="Delete">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        </button>
                     </div>
-                    <div class="dash-file-info">
-                        <div class="dash-file-title">${u.name}</div>
-                        <div class="dash-file-meta">Sem ${u.semester} · ${u.courseCode} · ${u.type.toUpperCase()}</div>
-                    </div>
-                    <span class="dash-file-cat-badge dash-cat-${u.category}">${u.category.toUpperCase()}</span>
-                    <button class="dash-file-del" data-id="${u.id}" title="Delete">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                    </button>
-                </div>
-            `).join('');
+                `).join('');
 
-            // Delete handlers
-            list.querySelectorAll('.dash-file-del').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const id = parseInt(btn.dataset.id);
-                    const ups = JSON.parse(localStorage.getItem(UPLOAD_KEY) || '[]');
-                    const updated = ups.filter(u => u.id !== id);
-                    localStorage.setItem(UPLOAD_KEY, JSON.stringify(updated));
-                    showToast('File removed.', 'info');
-                    renderUploads();
+                // Delete handlers
+                list.querySelectorAll('.dash-file-del').forEach(btn => {
+                    btn.addEventListener('click', async () => {
+                        if(!confirm('Are you sure you want to delete this file?')) return;
+                        const id = btn.dataset.id;
+                        
+                        try {
+                            const { error: dbErr } = await supabase.from('materials').delete().eq('id', id);
+                            if (dbErr) throw dbErr;
+                            
+                            showToast('File removed successfully.', 'info');
+                            renderUploads();
+                        } catch (err) {
+                            showToast('Error deleting file.', 'error');
+                        }
+                    });
                 });
-            });
+
+            } catch (err) {
+                console.error(err);
+                list.innerHTML = `<div class="dash-files-empty"><p style="color:var(--error);">Failed to load files.</p></div>`;
+            }
         }
 
         // ===== FILTER STATS =====

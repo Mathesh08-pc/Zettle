@@ -62,6 +62,8 @@
         <p>© 2026 Zettle. Made with ❤️ for students.</p>
     </footer>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase.js"></script>
     <script src="data.js"></script>
     <script>
         const params = new URLSearchParams(window.location.search);
@@ -80,41 +82,66 @@
         // Render subjects
         const grid = document.getElementById('subjects-grid');
 
-        sem.courses.forEach((course, i) => {
-            const baseMaterials = MATERIALS[course.code] || [];
-            const localUploads = JSON.parse(localStorage.getItem('zettle_uploads') || '[]')
-                .filter(u => u.courseCode === course.code);
-            const materials = [...localUploads, ...baseMaterials];
+        // Function to render the UI for all subjects
+        function renderGrid(supaData = []) {
+            grid.innerHTML = '';
+            
+            sem.courses.forEach((course, i) => {
+                const baseMaterials = MATERIALS[course.code] || [];
+                const supaUploads = supaData.filter(u => u.course_code === course.code);
+                const materials = [...supaUploads, ...baseMaterials];
 
-            const hasQP = materials.some(m => m.category === 'qp');
-            const hasNotes = materials.some(m => m.category === 'notes');
+                const hasQP = materials.some(m => m.category === 'qp');
+                const hasNotes = materials.some(m => m.category === 'notes');
 
-            const metaParts = [];
-            if (hasQP) metaParts.push('QP Papers');
-            if (hasNotes) metaParts.push('Notes');
-            if (metaParts.length === 0) metaParts.push('Coming soon');
+                const metaParts = [];
+                if (hasQP) metaParts.push('QP Papers');
+                if (hasNotes) metaParts.push('Notes');
+                if (metaParts.length === 0) metaParts.push('Coming soon');
 
-            const card = document.createElement('a');
-            card.className = 'subject-card';
-            card.href = `subject.html?sem=${semNum}&code=${course.code}`;
-            card.innerHTML = `
-                <div class="subject-info">
-                    <div class="subject-tag">SUB-${String(i + 1).padStart(2, '0')}</div>
-                    <div class="subject-title">${course.title}</div>
-                    <div class="subject-meta">${metaParts.join(' · ')}</div>
-                </div>
-                <div class="subject-arrow">→</div>
-            `;
-            grid.appendChild(card);
-        });
+                const card = document.createElement('a');
+                card.className = 'subject-card';
+                card.href = `subject.html?sem=${semNum}&code=${course.code}`;
+                card.innerHTML = `
+                    <div class="subject-info">
+                        <div class="subject-tag">SUB-${String(i + 1).padStart(2, '0')}</div>
+                        <div class="subject-title">${course.title}</div>
+                        <div class="subject-meta">${metaParts.join(' · ')}</div>
+                    </div>
+                    <div class="subject-arrow">→</div>
+                `;
+                grid.appendChild(card);
+            });
 
-        // If odd number, add empty placeholder
-        if (sem.courses.length % 2 !== 0) {
-            const placeholder = document.createElement('div');
-            placeholder.className = 'subject-card';
-            placeholder.style.cursor = 'default';
-            grid.appendChild(placeholder);
+            // If odd number, add empty placeholder
+            if (sem.courses.length % 2 !== 0) {
+                const placeholder = document.createElement('div');
+                placeholder.className = 'subject-card';
+                placeholder.style.cursor = 'default';
+                grid.appendChild(placeholder);
+            }
         }
+
+        // Initial render with static data
+        renderGrid();
+
+        // Fetch Supabase data and re-render
+        async function fetchSupabaseCounts() {
+            try {
+                const { data, error } = await supabase
+                    .from('materials')
+                    .select('course_code, category')
+                    .eq('semester', semNum);
+                
+                if (!error && data) {
+                    renderGrid(data);
+                }
+            } catch (err) {
+                console.error("Failed to fetch from Supabase:", err);
+            }
+        }
+        
+        fetchSupabaseCounts();
     </script>
     <script>
         if ('serviceWorker' in navigator) {
