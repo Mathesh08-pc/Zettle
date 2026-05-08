@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subject — Zettle</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <a href="index.html" class="nav-logo">Zettle</a>
+        <div class="nav-links">
+            <a href="index.html" class="nav-link">Home</a>
+            <a href="index.html#semesters" class="nav-link active">Semesters</a>
+            <a href="#" class="nav-link">Notes</a>
+            <a href="#" class="nav-link">QP Papers</a>
+            <a href="#" class="nav-link">About</a>
+        </div>
+        <div class="nav-hamburger" onclick="document.getElementById('mobile-nav').classList.toggle('active')">
+            <span></span><span></span><span></span>
+        </div>
+    </nav>
+    <div class="mobile-nav" id="mobile-nav">
+        <a href="index.html">Home</a>
+        <a href="index.html#semesters">Semesters</a>
+        <a href="#">Notes</a>
+        <a href="#">QP Papers</a>
+        <a href="#">About</a>
+    </div>
+
+    <!-- Breadcrumb -->
+    <div class="breadcrumb-bar">
+        <div class="breadcrumb" id="breadcrumb">
+            <a href="index.html">Home</a>
+            <span class="sep">/</span>
+            <a href="#" id="bc-sem-link">Sem 1</a>
+            <span class="sep">/</span>
+            <span class="current" id="bc-subject-name">Subject</span>
+        </div>
+        <span class="sem-badge" id="bc-sub-badge">SUB-01</span>
+    </div>
+
+    <!-- Material Tabs -->
+    <div class="material-tabs" id="material-tabs">
+        <button class="material-tab active" data-tab="qp">Question Papers</button>
+        <button class="material-tab" data-tab="notes">Notes</button>
+        <button class="material-tab" data-tab="other">Other Materials</button>
+    </div>
+
+    <!-- Materials Content -->
+    <div class="page">
+        <section class="materials-section" id="materials-content">
+            <!-- Populated by JS -->
+        </section>
+    </div>
+
+    <footer class="footer">
+        <p>© 2026 Zettle. Made with ❤️ for students.</p>
+    </footer>
+
+    <script src="data.js"></script>
+    <script>
+        const SVG = {
+            file: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>',
+            download: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
+            empty: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>'
+        };
+
+        const params = new URLSearchParams(window.location.search);
+        const semNum = parseInt(params.get('sem')) || 1;
+        const courseCode = params.get('code');
+        const sem = SEMESTERS[semNum];
+
+        if (!sem) window.location.href = 'index.html';
+
+        const course = sem.courses.find(c => c.code === courseCode);
+        if (!course) window.location.href = `semester.html?sem=${semNum}`;
+
+        const courseIndex = sem.courses.indexOf(course);
+        const materials = MATERIALS[courseCode] || [];
+
+        // Update page info
+        document.title = `${course.title} — Zettle`;
+        document.getElementById('bc-sem-link').textContent = `Sem ${semNum}`;
+        document.getElementById('bc-sem-link').href = `semester.html?sem=${semNum}`;
+        document.getElementById('bc-subject-name').textContent = course.title;
+        document.getElementById('bc-sub-badge').textContent = `SUB-${String(courseIndex + 1).padStart(2, '0')}`;
+
+        let activeTab = 'qp';
+
+        function renderMaterials(tab) {
+            const content = document.getElementById('materials-content');
+            const filtered = materials.filter(m => m.category === tab);
+
+            const labels = { qp: 'QUESTION PAPERS', notes: 'NOTES', other: 'OTHER MATERIALS' };
+
+            let html = `<div class="materials-group">
+                <div class="materials-group-label">${labels[tab]}</div>`;
+
+            if (filtered.length > 0) {
+                html += '<div class="material-list">';
+                filtered.forEach(m => {
+                    const badge = (m.type || 'pdf').toUpperCase();
+                    html += `
+                        <div class="material-item">
+                            <div class="material-icon">${SVG.file}</div>
+                            <div class="material-info">
+                                <div class="material-title">${m.name}</div>
+                                <div class="material-desc">${m.desc || ''}</div>
+                            </div>
+                            <div class="material-actions">
+                                <span class="material-badge">${badge}</span>
+                                <a href="${m.file}" download class="material-download" title="Download">${SVG.download}</a>
+                            </div>
+                        </div>`;
+                });
+
+                // Placeholder rows (loading hint)
+                html += `
+                    <div class="material-placeholder">
+                        <div class="placeholder-icon">${SVG.empty}</div>
+                        <div class="material-placeholder-lines">
+                            <div class="material-placeholder-line"></div>
+                            <div class="material-placeholder-line"></div>
+                        </div>
+                    </div>`;
+
+                html += '</div>';
+            } else {
+                html += `<div class="material-list">
+                    <div class="material-item" style="justify-content:center;padding:40px;">
+                        <div style="text-align:center;color:var(--text-muted);">
+                            <div style="font-size:2rem;margin-bottom:8px;">📄</div>
+                            <div style="font-size:0.9rem;">No ${labels[tab].toLowerCase()} uploaded yet</div>
+                            <div style="font-size:0.8rem;margin-top:4px;">Materials will appear here once added</div>
+                        </div>
+                    </div>
+                </div>`;
+            }
+
+            html += '</div>';
+            content.innerHTML = html;
+        }
+
+        // Tab switching
+        document.getElementById('material-tabs').addEventListener('click', (e) => {
+            const tab = e.target.closest('.material-tab');
+            if (!tab) return;
+            document.querySelectorAll('.material-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            activeTab = tab.dataset.tab;
+            renderMaterials(activeTab);
+        });
+
+        renderMaterials('qp');
+    </script>
+</body>
+</html>

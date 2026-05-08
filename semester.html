@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semester — Zettle</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <a href="index.html" class="nav-logo">Zettle</a>
+        <div class="nav-links">
+            <a href="index.html" class="nav-link">Home</a>
+            <a href="index.html#semesters" class="nav-link active">Semesters</a>
+            <a href="#" class="nav-link">Notes</a>
+            <a href="#" class="nav-link">QP Papers</a>
+            <a href="#" class="nav-link">About</a>
+        </div>
+        <div class="nav-hamburger" onclick="document.getElementById('mobile-nav').classList.toggle('active')">
+            <span></span><span></span><span></span>
+        </div>
+    </nav>
+    <div class="mobile-nav" id="mobile-nav">
+        <a href="index.html">Home</a>
+        <a href="index.html#semesters">Semesters</a>
+        <a href="#">Notes</a>
+        <a href="#">QP Papers</a>
+        <a href="#">About</a>
+    </div>
+
+    <!-- Breadcrumb -->
+    <div class="breadcrumb-bar">
+        <div class="breadcrumb" id="breadcrumb">
+            <a href="index.html">Home</a>
+            <span class="sep">/</span>
+            <span class="current" id="bc-sem-name">Semester 1</span>
+            <span class="sem-badge" id="bc-sem-badge">SEM 01</span>
+        </div>
+        <div class="breadcrumb-hint">Select a subject to continue <span>→</span></div>
+    </div>
+
+    <!-- Subjects -->
+    <div class="page">
+        <section class="subjects-section">
+            <div class="section-label">SUBJECTS</div>
+            <div class="subjects-grid" id="subjects-grid">
+                <!-- Populated by JS -->
+            </div>
+        </section>
+    </div>
+
+    <footer class="footer">
+        <p>© 2026 Zettle. Made with ❤️ for students.</p>
+    </footer>
+
+    <script src="data.js"></script>
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const semNum = parseInt(params.get('sem')) || 1;
+        const sem = SEMESTERS[semNum];
+
+        if (!sem) {
+            window.location.href = 'index.html';
+        }
+
+        // Update page
+        document.title = `${sem.title} — Zettle`;
+        document.getElementById('bc-sem-name').textContent = sem.title;
+        document.getElementById('bc-sem-badge').textContent = `SEM ${String(semNum).padStart(2, '0')}`;
+
+        // Render subjects
+        const grid = document.getElementById('subjects-grid');
+
+        sem.courses.forEach((course, i) => {
+            const materials = MATERIALS[course.code] || [];
+            const hasQP = materials.some(m => m.category === 'qp');
+            const hasNotes = materials.some(m => m.category === 'notes');
+
+            const metaParts = [];
+            if (hasQP) metaParts.push('QP Papers');
+            if (hasNotes) metaParts.push('Notes');
+            if (metaParts.length === 0) metaParts.push('Coming soon');
+
+            const card = document.createElement('a');
+            card.className = 'subject-card';
+            card.href = `subject.html?sem=${semNum}&code=${course.code}`;
+            card.innerHTML = `
+                <div class="subject-info">
+                    <div class="subject-tag">SUB-${String(i + 1).padStart(2, '0')}</div>
+                    <div class="subject-title">${course.title}</div>
+                    <div class="subject-meta">${metaParts.join(' · ')}</div>
+                </div>
+                <div class="subject-arrow">→</div>
+            `;
+            grid.appendChild(card);
+        });
+
+        // If odd number, add empty placeholder
+        if (sem.courses.length % 2 !== 0) {
+            const placeholder = document.createElement('div');
+            placeholder.className = 'subject-card';
+            placeholder.style.cursor = 'default';
+            grid.appendChild(placeholder);
+        }
+    </script>
+</body>
+</html>

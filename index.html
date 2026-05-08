@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zettle — Your Study Hub</title>
+    <meta name="description" content="Zettle is your centralized study hub. Access question papers, notes & more — organised by semester & subject.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar" id="navbar">
+        <a href="index.html" class="nav-logo">Zettle</a>
+        <div class="nav-links" id="nav-links">
+            <a href="index.html" class="nav-link active">Home</a>
+            <a href="#semesters" class="nav-link">Semesters</a>
+            <a href="#" class="nav-link">Notes</a>
+            <a href="#" class="nav-link">QP Papers</a>
+            <a href="#about" class="nav-link">About</a>
+        </div>
+        <div class="nav-hamburger" id="nav-hamburger" onclick="document.getElementById('mobile-nav').classList.toggle('active')">
+            <span></span><span></span><span></span>
+        </div>
+    </nav>
+    <div class="mobile-nav" id="mobile-nav">
+        <a href="index.html">Home</a>
+        <a href="#semesters">Semesters</a>
+        <a href="#">Notes</a>
+        <a href="#">QP Papers</a>
+        <a href="#about">About</a>
+    </div>
+
+    <!-- Hero -->
+    <div class="page">
+        <section class="hero-section">
+            <div class="hero-badge">+ FREE FOR ALL STUDENTS</div>
+            <h1 class="hero-title">Your study hub.<br>All semesters.</h1>
+            <p class="hero-subtitle">Question papers, notes & more — organised by semester & subject.</p>
+        </section>
+
+        <!-- Semester Grid -->
+        <section class="semester-section" id="semesters">
+            <div class="section-label">SELECT YOUR SEMESTER <span class="arrow">→</span></div>
+            <div class="semester-grid" id="semester-grid">
+                <!-- Populated by JS -->
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-bar" id="stats-bar">
+                <!-- Populated by JS -->
+            </div>
+        </section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer" id="about">
+        <p>© 2026 Zettle. Made with ❤️ for students. Free & open source.</p>
+    </footer>
+
+    <script src="data.js"></script>
+    <script>
+        // Render semester grid
+        const semGrid = document.getElementById('semester-grid');
+        const totalSemesters = 8; // Total grid slots (some may not have data yet)
+
+        for (let i = 1; i <= totalSemesters; i++) {
+            const card = document.createElement('a');
+            card.className = 'semester-card';
+            card.href = SEMESTERS[i] ? `semester.html?sem=${i}` : '#';
+            if (!SEMESTERS[i]) card.style.opacity = '0.35';
+            card.innerHTML = `
+                <div class="semester-num">${String(i).padStart(2, '0')}</div>
+                <div class="semester-label">Semester</div>
+            `;
+            semGrid.appendChild(card);
+        }
+
+        // Render stats
+        let totalSubjects = 0;
+        Object.values(SEMESTERS).forEach(s => totalSubjects += s.courses.length);
+
+        let totalQP = 0, totalNotes = 0;
+        Object.values(MATERIALS).forEach(courseM => {
+            courseM.forEach(m => {
+                if (m.category === 'qp') totalQP++;
+                else if (m.category === 'notes') totalNotes++;
+            });
+        });
+
+        const statsBar = document.getElementById('stats-bar');
+        const stats = [
+            { num: Object.keys(SEMESTERS).length, label: 'Semesters' },
+            { num: totalSubjects, label: 'Subjects' },
+            { num: totalQP || '—', label: 'QP Papers' },
+            { num: totalNotes || '—', label: 'Notes PDFs' },
+        ];
+        stats.forEach(s => {
+            const el = document.createElement('div');
+            el.className = 'stat-item';
+            el.innerHTML = `<div class="stat-number">${s.num}</div><div class="stat-label">${s.label}</div>`;
+            statsBar.appendChild(el);
+        });
+    </script>
+</body>
+</html>

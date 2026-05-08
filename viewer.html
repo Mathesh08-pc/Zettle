@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Material — Zettle</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .viewer-page { position: relative; z-index: 1; min-height: 100vh; padding: 100px 24px 48px; }
+        .viewer-container { max-width: 1000px; margin: 0 auto; }
+        .viewer-breadcrumb {
+            display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+            margin-bottom: 24px; font-size: 0.85rem; color: var(--text-muted);
+        }
+        .viewer-breadcrumb a { color: var(--accent); transition: var(--transition); }
+        .viewer-breadcrumb a:hover { color: var(--accent-hover); }
+        .breadcrumb-sep { opacity: 0.4; }
+
+        .viewer-header {
+            display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;
+            gap: 16px; margin-bottom: 24px;
+        }
+        .viewer-title { font-size: 1.5rem; font-weight: 700; }
+        .viewer-meta { font-size: 0.85rem; color: var(--text-muted); margin-top: 4px; }
+
+        .viewer-actions { display: flex; gap: 10px; }
+        .btn-download {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 10px 20px; border-radius: var(--radius-sm);
+            background: var(--accent); color: #fff; font-weight: 600; font-size: 0.9rem;
+            transition: var(--transition); box-shadow: 0 4px 20px var(--accent-glow);
+        }
+        .btn-download:hover { background: var(--accent-hover); transform: translateY(-2px); }
+        .btn-back {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 10px 20px; border-radius: var(--radius-sm);
+            border: 1px solid var(--border); color: var(--text-secondary); font-weight: 600; font-size: 0.9rem;
+            transition: var(--transition);
+        }
+        .btn-back:hover { border-color: var(--border-hover); color: var(--text-primary); }
+
+        .viewer-frame {
+            background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg);
+            overflow: hidden; min-height: 70vh; position: relative;
+        }
+        .viewer-frame iframe {
+            width: 100%; height: 80vh; border: none; display: block;
+        }
+        .viewer-frame img {
+            width: 100%; height: auto; display: block; object-fit: contain;
+            max-height: 80vh; padding: 24px; background: var(--bg-secondary);
+        }
+
+        .viewer-error {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            min-height: 50vh; gap: 16px; text-align: center; padding: 48px;
+        }
+        .viewer-error-icon { font-size: 3rem; }
+        .viewer-error h2 { font-size: 1.3rem; font-weight: 600; }
+        .viewer-error p { color: var(--text-secondary); max-width: 400px; }
+    </style>
+</head>
+<body>
+    <div class="ambient-bg">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+    </div>
+
+    <nav class="navbar scrolled">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">
+                <span class="logo-icon">📓</span>
+                <span class="logo-text">Zettle</span>
+            </a>
+            <div class="nav-links">
+                <a href="index.html#home" class="nav-link">Home</a>
+                <a href="index.html#semesters" class="nav-link active">Semesters</a>
+                <a href="index.html#about" class="nav-link">About</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="viewer-page">
+        <div class="viewer-container" id="viewer-container">
+            <!-- Populated by JS -->
+        </div>
+    </div>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const filePath = params.get('file');
+        const materialName = params.get('name') || 'Material';
+        const courseName = params.get('course') || 'Course';
+        const container = document.getElementById('viewer-container');
+
+        if (!filePath) {
+            container.innerHTML = `
+                <div class="viewer-error">
+                    <div class="viewer-error-icon">📄</div>
+                    <h2>No material selected</h2>
+                    <p>Please go back and select a material to view.</p>
+                    <a href="index.html#semesters" class="btn-back">← Back to Semesters</a>
+                </div>`;
+        } else {
+            const ext = filePath.split('.').pop().toLowerCase();
+            const isPDF = ext === 'pdf';
+            const isImage = ['png','jpg','jpeg','gif','webp','svg'].includes(ext);
+
+            document.title = `${materialName} — Zettle`;
+
+            let viewerContent = '';
+            if (isPDF) {
+                viewerContent = `<iframe src="${filePath}" title="${materialName}"></iframe>`;
+            } else if (isImage) {
+                viewerContent = `<img src="${filePath}" alt="${materialName}">`;
+            } else {
+                viewerContent = `
+                    <div class="viewer-error">
+                        <div class="viewer-error-icon">📎</div>
+                        <h2>Preview not available</h2>
+                        <p>This file type can't be previewed. Click download to get the file.</p>
+                    </div>`;
+            }
+
+            container.innerHTML = `
+                <div class="viewer-breadcrumb">
+                    <a href="index.html">Home</a>
+                    <span class="breadcrumb-sep">›</span>
+                    <a href="index.html#semesters">Semesters</a>
+                    <span class="breadcrumb-sep">›</span>
+                    <span>${courseName}</span>
+                    <span class="breadcrumb-sep">›</span>
+                    <span style="color:var(--text-primary)">${materialName}</span>
+                </div>
+                <div class="viewer-header">
+                    <div>
+                        <h1 class="viewer-title">${materialName}</h1>
+                        <p class="viewer-meta">${courseName} · ${ext.toUpperCase()} file</p>
+                    </div>
+                    <div class="viewer-actions">
+                        <a href="index.html#semesters" class="btn-back">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+                            Back
+                        </a>
+                        <a href="${filePath}" download class="btn-download">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            Download
+                        </a>
+                    </div>
+                </div>
+                <div class="viewer-frame">${viewerContent}</div>`;
+        }
+    </script>
+</body>
+</html>
