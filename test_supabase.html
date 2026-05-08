@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <script>
+        const SUPABASE_URL = 'https://xeugngazneqaemamzzmb.supabase.co';
+        const SUPABASE_KEY = 'anon';
+        
+        try {
+            const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            console.log("Client created successfully");
+            console.log("Client has storage?", !!client.storage);
+            if (client.storage) {
+                console.log("Storage has from?", !!client.storage.from);
+            }
+        } catch (e) {
+            console.error("Error creating client:", e);
+        }
+    </script>
+</body>
+</html>

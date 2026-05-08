@@ -282,18 +282,18 @@
 
             try {
                 // 1. Upload file to Supabase Storage
-                const { data: fileData, error: fileError } = await supabase.storage
+                const { data: fileData, error: fileError } = await supabaseClient.storage
                     .from('files')
                     .upload(filePath, selectedFile);
                     
                 if (fileError) throw fileError;
 
                 // Get public URL
-                const { data: urlData } = supabase.storage.from('files').getPublicUrl(filePath);
+                const { data: urlData } = supabaseClient.storage.from('files').getPublicUrl(filePath);
                 const fileUrl = urlData.publicUrl;
 
                 // 2. Insert metadata into Supabase Database
-                const { error: dbError } = await supabase.from('materials').insert([{
+                const { error: dbError } = await supabaseClient.from('materials').insert([{
                     name: displayName,
                     description: desc || `${categoryLabels[selectedType]}${year ? ' · ' + year : ''}`,
                     file_url: fileUrl,
@@ -337,7 +337,7 @@
             list.innerHTML = '<div class="dash-files-empty"><p>Loading files from Supabase...</p></div>';
 
             try {
-                let query = supabase.from('materials').select('*').order('created_at', { ascending: false });
+                let query = supabaseClient.from('materials').select('*').order('created_at', { ascending: false });
                 if (fileFilter !== 'all') {
                     query = query.eq('category', fileFilter);
                 }
@@ -346,10 +346,10 @@
                 if (error) throw error;
 
                 // Update stats (Need to fetch counts)
-                const { count: allCount } = await supabase.from('materials').select('*', { count: 'exact', head: true });
-                const { count: qpCount } = await supabase.from('materials').select('*', { count: 'exact', head: true }).eq('category', 'qp');
-                const { count: notesCount } = await supabase.from('materials').select('*', { count: 'exact', head: true }).eq('category', 'notes');
-                const { count: otherCount } = await supabase.from('materials').select('*', { count: 'exact', head: true }).eq('category', 'other');
+                const { count: allCount } = await supabaseClient.from('materials').select('*', { count: 'exact', head: true });
+                const { count: qpCount } = await supabaseClient.from('materials').select('*', { count: 'exact', head: true }).eq('category', 'qp');
+                const { count: notesCount } = await supabaseClient.from('materials').select('*', { count: 'exact', head: true }).eq('category', 'notes');
+                const { count: otherCount } = await supabaseClient.from('materials').select('*', { count: 'exact', head: true }).eq('category', 'other');
 
                 document.getElementById('dash-files-count').textContent = allCount || 0;
                 document.getElementById('stat-all').textContent = allCount || 0;
@@ -390,7 +390,7 @@
                         const id = btn.dataset.id;
                         
                         try {
-                            const { error: dbErr } = await supabase.from('materials').delete().eq('id', id);
+                            const { error: dbErr } = await supabaseClient.from('materials').delete().eq('id', id);
                             if (dbErr) throw dbErr;
                             
                             showToast('File removed successfully.', 'info');
