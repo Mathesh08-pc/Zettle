@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dev Portal — Zettle</title>
+    <meta name="description" content="Developer upload portal for Zettle study hub.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Dashboard Navbar -->
+    <nav class="navbar dash-nav">
+        <div class="dash-nav-left">
+            <a href="index.html" class="nav-logo">Zettle</a>
+            <span class="dash-nav-badge">&gt;_ DEV PORTAL</span>
+        </div>
+        <div class="dash-nav-right">
+            <span class="dash-nav-user">admin</span>
+            <button class="dash-logout-btn" id="logout-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                Logout
+            </button>
+        </div>
+        <button class="dash-logout-mobile" id="logout-btn-mobile" aria-label="Logout">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        </button>
+    </nav>
+
+    <!-- Dashboard Content -->
+    <div class="dash-layout">
+        <!-- LEFT: Upload Form -->
+        <div class="dash-form-panel">
+            <div class="dash-section-title">UPLOAD NEW MATERIAL</div>
+
+            <!-- File Name -->
+            <div class="dash-field">
+                <label class="dash-label">FILE NAME</label>
+                <div class="dash-filename-row">
+                    <span class="dash-filename-prefix">zettle/upload/</span>
+                    <input type="text" class="dash-input dash-filename-input" id="dash-filename" placeholder="e.g. Engineering Maths — QP 2024">
+                    <span class="dash-filename-suffix" id="dash-file-ext">.pdf</span>
+                </div>
+            </div>
+
+            <!-- Material Type -->
+            <div class="dash-field">
+                <label class="dash-label">MATERIAL TYPE</label>
+                <div class="dash-type-tabs" id="dash-type-tabs">
+                    <button class="dash-type-tab active" data-type="qp">Question Paper</button>
+                    <button class="dash-type-tab" data-type="notes">Notes</button>
+                    <button class="dash-type-tab" data-type="other">Other Material</button>
+                </div>
+            </div>
+
+            <!-- Semester + Subject Row -->
+            <div class="dash-row">
+                <div class="dash-field dash-field-sem">
+                    <label class="dash-label">SEMESTER</label>
+                    <div class="dash-sem-grid" id="dash-sem-grid">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+                <div class="dash-field dash-field-sub">
+                    <label class="dash-label">SUBJECT</label>
+                    <div class="dash-select-wrap">
+                        <select class="dash-select" id="dash-subject">
+                            <option value="">Select a subject</option>
+                        </select>
+                        <svg class="dash-select-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                    </div>
+
+                    <!-- Exam Year -->
+                    <label class="dash-label" style="margin-top:16px;">EXAM YEAR</label>
+                    <input type="text" class="dash-input" id="dash-year" placeholder="e.g. 2024">
+                </div>
+            </div>
+
+            <!-- Description -->
+            <div class="dash-field">
+                <label class="dash-label">DESCRIPTION / LABEL <span class="dash-label-hint">(optional)</span></label>
+                <input type="text" class="dash-input" id="dash-desc" placeholder="e.g. Handwritten · 32 pages, or University Exam · End Semester">
+            </div>
+
+            <!-- File Upload -->
+            <div class="dash-field">
+                <label class="dash-label">FILE</label>
+                <div class="dash-dropzone" id="dash-dropzone">
+                    <input type="file" id="dash-file-input" accept=".pdf,.doc,.docx,.ppt,.pptx,.png,.jpg,.jpeg,.webp" hidden>
+                    <div class="dash-dropzone-icon">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    </div>
+                    <p class="dash-dropzone-text"><strong>Drop file here or click to browse</strong></p>
+                    <p class="dash-dropzone-hint">PDF, DOC, DOCX, PPT, PPTX supported</p>
+                </div>
+                <div class="dash-file-preview" id="dash-file-preview" style="display:none;">
+                    <div class="dash-file-preview-info">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                        <span id="dash-file-name-display"></span>
+                        <span id="dash-file-size-display" class="dash-file-size"></span>
+                    </div>
+                    <button class="dash-file-remove" id="dash-file-remove" type="button">✕</button>
+                </div>
+            </div>
+
+            <!-- Save Button -->
+            <button class="dash-save-btn" id="dash-save-btn" type="button">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                SAVE &amp; UPLOAD
+            </button>
+        </div>
+
+        <!-- RIGHT: Uploaded Files Panel -->
+        <div class="dash-files-panel">
+            <div class="dash-files-header">
+                <div class="dash-files-title">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    UPLOADED FILES
+                    <span class="dash-files-count" id="dash-files-count">0</span>
+                </div>
+                <button class="dash-filter-btn" id="dash-filter-btn">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                    Filter
+                </button>
+            </div>
+            <div class="dash-files-stats" id="dash-files-stats">
+                <div class="dash-stat active" data-filter="all"><div class="dash-stat-num" id="stat-all">0</div><div class="dash-stat-lbl">All</div></div>
+                <div class="dash-stat" data-filter="qp"><div class="dash-stat-num" id="stat-qp">0</div><div class="dash-stat-lbl">QP</div></div>
+                <div class="dash-stat" data-filter="notes"><div class="dash-stat-num" id="stat-notes">0</div><div class="dash-stat-lbl">Notes</div></div>
+                <div class="dash-stat" data-filter="other"><div class="dash-stat-num" id="stat-other">0</div><div class="dash-stat-lbl">Other</div></div>
+            </div>
+            <div class="dash-files-list" id="dash-files-list">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="dash-toast" id="dash-toast"></div>
+
+    <script src="data.js"></script>
+    <script>
+        // ===== AUTH GUARD =====
+        if (sessionStorage.getItem('zettle_auth') !== 'true') {
+            window.location.href = 'login.html';
+        }
+
+        // ===== LOGOUT =====
+        document.getElementById('logout-btn').addEventListener('click', doLogout);
+        document.getElementById('logout-btn-mobile').addEventListener('click', doLogout);
+        function doLogout() {
+            sessionStorage.removeItem('zettle_auth');
+            window.location.href = 'index.html';
+        }
+
+        // ===== STATE =====
+        let selectedType = 'qp';
+        let selectedSem = 1;
+        let selectedFile = null;
+        let fileFilter = 'all';
+        const UPLOAD_KEY = 'zettle_uploads';
+
+        // ===== SEMESTER GRID =====
+        const semGrid = document.getElementById('dash-sem-grid');
+        for (let i = 1; i <= 8; i++) {
+            const btn = document.createElement('button');
+            btn.className = 'dash-sem-btn' + (i === 1 ? ' active' : '');
+            btn.dataset.sem = i;
+            btn.textContent = String(i).padStart(2, '0');
+            if (!SEMESTERS[i]) btn.classList.add('disabled');
+            btn.addEventListener('click', () => {
+                if (!SEMESTERS[i]) return;
+                selectedSem = i;
+                semGrid.querySelectorAll('.dash-sem-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                populateSubjects();
+            });
+            semGrid.appendChild(btn);
+        }
+
+        // ===== SUBJECT DROPDOWN =====
+        function populateSubjects() {
+            const sel = document.getElementById('dash-subject');
+            sel.innerHTML = '<option value="">Select a subject</option>';
+            const sem = SEMESTERS[selectedSem];
+            if (!sem) return;
+            sem.courses.forEach((c, i) => {
+                const opt = document.createElement('option');
+                opt.value = c.code;
+                opt.textContent = `SUB-${String(i + 1).padStart(2, '0')} — ${c.title}`;
+                sel.appendChild(opt);
+            });
+        }
+        populateSubjects();
+
+        // ===== MATERIAL TYPE TABS =====
+        document.getElementById('dash-type-tabs').addEventListener('click', (e) => {
+            const tab = e.target.closest('.dash-type-tab');
+            if (!tab) return;
+            document.querySelectorAll('.dash-type-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            selectedType = tab.dataset.type;
+        });
+
+        // ===== FILE UPLOAD =====
+        const dropzone = document.getElementById('dash-dropzone');
+        const fileInput = document.getElementById('dash-file-input');
+        const filePreview = document.getElementById('dash-file-preview');
+
+        dropzone.addEventListener('click', () => fileInput.click());
+        dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('drag-over'); });
+        dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
+        dropzone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropzone.classList.remove('drag-over');
+            if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+        });
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length) handleFile(fileInput.files[0]);
+        });
+
+        function handleFile(file) {
+            selectedFile = file;
+            const ext = file.name.split('.').pop().toLowerCase();
+            document.getElementById('dash-file-ext').textContent = '.' + ext;
+            document.getElementById('dash-file-name-display').textContent = file.name;
+            document.getElementById('dash-file-size-display').textContent = formatSize(file.size);
+            dropzone.style.display = 'none';
+            filePreview.style.display = 'flex';
+        }
+
+        document.getElementById('dash-file-remove').addEventListener('click', () => {
+            selectedFile = null;
+            fileInput.value = '';
+            dropzone.style.display = 'flex';
+            filePreview.style.display = 'none';
+            document.getElementById('dash-file-ext').textContent = '.pdf';
+        });
+
+        function formatSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / 1048576).toFixed(1) + ' MB';
+        }
+
+        // ===== SAVE & UPLOAD =====
+        document.getElementById('dash-save-btn').addEventListener('click', saveUpload);
+
+        function saveUpload() {
+            const fileName = document.getElementById('dash-filename').value.trim();
+            const subject = document.getElementById('dash-subject').value;
+            const year = document.getElementById('dash-year').value.trim();
+            const desc = document.getElementById('dash-desc').value.trim();
+
+            // Validate
+            if (!fileName) return showToast('Please enter a file name.', 'error');
+            if (!subject) return showToast('Please select a subject.', 'error');
+            if (!selectedFile) return showToast('Please select a file to upload.', 'error');
+
+            const ext = selectedFile.name.split('.').pop().toLowerCase();
+            const fileType = ['png','jpg','jpeg','webp','gif','svg'].includes(ext) ? 'img' : (ext === 'pdf' ? 'pdf' : 'doc');
+
+            const sem = SEMESTERS[selectedSem];
+            const course = sem.courses.find(c => c.code === subject);
+            const categoryLabels = { qp: 'Question Paper', notes: 'Notes', other: 'Other Material' };
+
+            // Build display name
+            const displayName = fileName + (year ? ' — ' + year : '');
+            const filePath = `materials/sem${selectedSem}/${subject}/${fileName.replace(/[^a-zA-Z0-9_\- ]/g, '_').replace(/\s+/g, '_').toLowerCase()}.${ext}`;
+
+            // Read file as base64 for storage
+            const reader = new FileReader();
+            reader.onload = function () {
+                const upload = {
+                    id: Date.now(),
+                    name: displayName,
+                    desc: desc || `${categoryLabels[selectedType]}${year ? ' · ' + year : ''}`,
+                    file: filePath,
+                    type: fileType,
+                    category: selectedType,
+                    semester: selectedSem,
+                    courseCode: subject,
+                    courseTitle: course ? course.title : subject,
+                    originalFileName: selectedFile.name,
+                    fileSize: selectedFile.size,
+                    fileData: reader.result,
+                    uploadedAt: new Date().toISOString()
+                };
+
+                // Save to localStorage
+                const uploads = JSON.parse(localStorage.getItem(UPLOAD_KEY) || '[]');
+                uploads.unshift(upload);
+                localStorage.setItem(UPLOAD_KEY, JSON.stringify(uploads));
+
+                showToast('Material saved successfully!', 'success');
+                resetForm();
+                renderUploads();
+            };
+            reader.readAsDataURL(selectedFile);
+        }
+
+        function resetForm() {
+            document.getElementById('dash-filename').value = '';
+            document.getElementById('dash-subject').selectedIndex = 0;
+            document.getElementById('dash-year').value = '';
+            document.getElementById('dash-desc').value = '';
+            selectedFile = null;
+            fileInput.value = '';
+            dropzone.style.display = 'flex';
+            filePreview.style.display = 'none';
+            document.getElementById('dash-file-ext').textContent = '.pdf';
+        }
+
+        // ===== UPLOADED FILES =====
+        function renderUploads() {
+            const uploads = JSON.parse(localStorage.getItem(UPLOAD_KEY) || '[]');
+            const list = document.getElementById('dash-files-list');
+            const filtered = fileFilter === 'all' ? uploads : uploads.filter(u => u.category === fileFilter);
+
+            // Update stats
+            document.getElementById('dash-files-count').textContent = uploads.length;
+            document.getElementById('stat-all').textContent = uploads.length;
+            document.getElementById('stat-qp').textContent = uploads.filter(u => u.category === 'qp').length;
+            document.getElementById('stat-notes').textContent = uploads.filter(u => u.category === 'notes').length;
+            document.getElementById('stat-other').textContent = uploads.filter(u => u.category === 'other').length;
+
+            if (filtered.length === 0) {
+                list.innerHTML = `
+                    <div class="dash-files-empty">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                        <p class="dash-empty-title">No uploads yet</p>
+                        <p class="dash-empty-hint">Upload your first file using the form.</p>
+                    </div>`;
+                return;
+            }
+
+            list.innerHTML = filtered.map(u => `
+                <div class="dash-file-item" data-id="${u.id}">
+                    <div class="dash-file-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    </div>
+                    <div class="dash-file-info">
+                        <div class="dash-file-title">${u.name}</div>
+                        <div class="dash-file-meta">Sem ${u.semester} · ${u.courseCode} · ${u.type.toUpperCase()}</div>
+                    </div>
+                    <span class="dash-file-cat-badge dash-cat-${u.category}">${u.category.toUpperCase()}</span>
+                    <button class="dash-file-del" data-id="${u.id}" title="Delete">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                </div>
+            `).join('');
+
+            // Delete handlers
+            list.querySelectorAll('.dash-file-del').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const id = parseInt(btn.dataset.id);
+                    const ups = JSON.parse(localStorage.getItem(UPLOAD_KEY) || '[]');
+                    const updated = ups.filter(u => u.id !== id);
+                    localStorage.setItem(UPLOAD_KEY, JSON.stringify(updated));
+                    showToast('File removed.', 'info');
+                    renderUploads();
+                });
+            });
+        }
+
+        // ===== FILTER STATS =====
+        document.getElementById('dash-files-stats').addEventListener('click', (e) => {
+            const stat = e.target.closest('.dash-stat');
+            if (!stat) return;
+            document.querySelectorAll('.dash-stat').forEach(s => s.classList.remove('active'));
+            stat.classList.add('active');
+            fileFilter = stat.dataset.filter;
+            renderUploads();
+        });
+
+        // ===== TOAST =====
+        function showToast(msg, type) {
+            const toast = document.getElementById('dash-toast');
+            toast.textContent = msg;
+            toast.className = 'dash-toast visible ' + (type || '');
+            setTimeout(() => toast.classList.remove('visible'), 3000);
+        }
+
+        // Init
+        renderUploads();
+    </script>
+</body>
+</html>
