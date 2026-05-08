@@ -67,6 +67,8 @@
         <p>© 2026 Zettle. Made with ❤️ for students.</p>
     </footer>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase.js"></script>
     <script src="data.js"></script>
     <script>
         const SVG = {
@@ -88,18 +90,8 @@
         const courseIndex = sem.courses.indexOf(course);
         const baseMaterials = MATERIALS[courseCode] || [];
         
-        // Merge locally uploaded files from the developer dashboard
-        const localUploads = JSON.parse(localStorage.getItem('zettle_uploads') || '[]')
-            .filter(u => u.courseCode === courseCode)
-            .map(u => ({
-                name: u.name,
-                category: u.category,
-                type: u.type,
-                desc: u.desc,
-                file: u.fileData || u.file // Use base64 data if available so it works locally before commit
-            }));
-            
-        const materials = [...localUploads, ...baseMaterials];
+        let materials = [...baseMaterials];
+        let activeTab = 'qp';
 
         // Update page info
         document.title = `${course.title} — Zettle`;
@@ -108,7 +100,31 @@
         document.getElementById('bc-subject-name').textContent = course.title;
         document.getElementById('bc-sub-badge').textContent = `SUB-${String(courseIndex + 1).padStart(2, '0')}`;
 
-        let activeTab = 'qp';
+        async function fetchSupabaseMaterials() {
+            try {
+                const { data, error } = await supabase
+                    .from('materials')
+                    .select('*')
+                    .eq('course_code', courseCode)
+                    .order('created_at', { ascending: false });
+                
+                if (error) throw error;
+                
+                if (data && data.length > 0) {
+                    const supaMaterials = data.map(u => ({
+                        name: u.name,
+                        category: u.category,
+                        type: u.file_type,
+                        desc: u.description,
+                        file: u.file_url
+                    }));
+                    materials = [...supaMaterials, ...baseMaterials];
+                    renderMaterials(activeTab);
+                }
+            } catch (err) {
+                console.error("Failed to fetch from Supabase:", err);
+            }
+        }
 
         function renderMaterials(tab) {
             const content = document.getElementById('materials-content');
@@ -175,6 +191,7 @@
         });
 
         renderMaterials('qp');
+        fetchSupabaseMaterials();
     </script>
     <script>
         if ('serviceWorker' in navigator) {
