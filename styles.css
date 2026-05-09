@@ -1,24 +1,28 @@
 /* ===== DESIGN TOKENS ===== */
 :root {
-    --bg-body: #111111;
-    --bg-nav: #1a1a1a;
-    --bg-card: #1e1e1e;
-    --bg-card-hover: #252525;
-    --bg-input: #2a2a2a;
-    --border: #2e2e2e;
-    --border-hover: #444;
-    --text-primary: #ffffff;
-    --text-secondary: #999;
-    --text-muted: #666;
+    --bg-body: #0a0a0f;
+    --bg-nav: rgba(14, 14, 20, 0.85);
+    --bg-card: #141419;
+    --bg-card-hover: #1c1c24;
+    --bg-input: #1a1a22;
+    --bg-secondary: #111118;
+    --border: #1e1e2a;
+    --border-hover: #3a3a4a;
+    --text-primary: #f0f0f5;
+    --text-secondary: #8a8a9a;
+    --text-muted: #55556a;
     --accent: #4caf50;
-    --accent-hover: #5cc860;
-    --accent-dim: rgba(76, 175, 80, 0.12);
-    --accent-border: rgba(76, 175, 80, 0.3);
-    --radius: 8px;
-    --radius-sm: 6px;
+    --accent-hover: #66cc6a;
+    --accent-dim: rgba(76, 175, 80, 0.08);
+    --accent-border: rgba(76, 175, 80, 0.2);
+    --accent-glow: rgba(76, 175, 80, 0.15);
+    --error: #f44336;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --radius-lg: 16px;
     --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
-    --transition: 0.2s ease;
+    --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     --max-width: 1100px;
 }
 
@@ -40,6 +44,7 @@ button { border: none; background: none; cursor: pointer; font-family: var(--fon
 .navbar {
     position: sticky; top: 0; z-index: 100;
     background: var(--bg-nav);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
     border-bottom: 1px solid var(--border);
     padding: 0 40px;
     height: 56px;
@@ -122,10 +127,14 @@ button { border: none; background: none; cursor: pointer; font-family: var(--fon
     gap: 6px; transition: background var(--transition); cursor: pointer;
     text-decoration: none;
 }
-.semester-card:hover { background: var(--bg-card-hover); }
+.semester-card:hover {
+    background: var(--bg-card-hover);
+    box-shadow: inset 0 0 30px var(--accent-dim);
+}
+.semester-card:hover .semester-num { color: var(--accent); }
 .semester-num {
     font-size: 2.2rem; font-weight: 800; letter-spacing: -0.02em;
-    color: var(--text-primary);
+    color: var(--text-primary); transition: color var(--transition);
 }
 .semester-label {
     font-size: 0.82rem; color: var(--text-secondary); font-weight: 500;
@@ -179,7 +188,12 @@ button { border: none; background: none; cursor: pointer; font-family: var(--fon
     transition: background var(--transition); cursor: pointer;
     text-decoration: none; gap: 16px;
 }
-.subject-card:hover { background: var(--bg-card-hover); }
+.subject-card:hover {
+    background: var(--bg-card-hover);
+    box-shadow: inset 0 0 30px var(--accent-dim);
+}
+.subject-card:hover .subject-tag { color: var(--accent-hover); }
+.subject-card:hover .subject-arrow { color: var(--accent); }
 .subject-info { flex: 1; }
 .subject-tag {
     font-size: 0.72rem; font-weight: 700; color: var(--accent);
@@ -766,3 +780,75 @@ button { border: none; background: none; cursor: pointer; font-family: var(--fon
     .dash-files-header { padding: 16px; }
     .dash-file-item { padding: 12px 16px; }
 }
+
+/* ===== AMBIENT BACKGROUND ===== */
+.ambient-bg {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none; z-index: 0; overflow: hidden;
+}
+.orb {
+    position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.12;
+}
+.orb-1 {
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
+    top: -10%; left: -5%;
+    animation: orbFloat1 20s ease-in-out infinite;
+}
+.orb-2 {
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, #2196f3 0%, transparent 70%);
+    bottom: -10%; right: -5%;
+    animation: orbFloat2 25s ease-in-out infinite;
+}
+@keyframes orbFloat1 {
+    0%, 100% { transform: translate(0, 0); }
+    33% { transform: translate(60px, 80px); }
+    66% { transform: translate(-40px, 40px); }
+}
+@keyframes orbFloat2 {
+    0%, 100% { transform: translate(0, 0); }
+    33% { transform: translate(-50px, -60px); }
+    66% { transform: translate(30px, -30px); }
+}
+
+/* ===== FADE-IN ANIMATIONS ===== */
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.hero-section { animation: fadeInUp 0.6s ease-out; }
+.semester-section { animation: fadeInUp 0.7s ease-out 0.15s both; }
+.semester-card { animation: fadeInUp 0.4s ease-out both; }
+.semester-card:nth-child(1) { animation-delay: 0.1s; }
+.semester-card:nth-child(2) { animation-delay: 0.15s; }
+.semester-card:nth-child(3) { animation-delay: 0.2s; }
+.semester-card:nth-child(4) { animation-delay: 0.25s; }
+.semester-card:nth-child(5) { animation-delay: 0.3s; }
+.semester-card:nth-child(6) { animation-delay: 0.35s; }
+.semester-card:nth-child(7) { animation-delay: 0.4s; }
+.semester-card:nth-child(8) { animation-delay: 0.45s; }
+.subject-card { animation: fadeInUp 0.4s ease-out both; }
+.subject-card:nth-child(odd) { animation-delay: 0.1s; }
+.subject-card:nth-child(even) { animation-delay: 0.2s; }
+.stat-item { animation: fadeInUp 0.5s ease-out both; }
+.stat-item:nth-child(1) { animation-delay: 0.5s; }
+.stat-item:nth-child(2) { animation-delay: 0.6s; }
+.stat-item:nth-child(3) { animation-delay: 0.7s; }
+.stat-item:nth-child(4) { animation-delay: 0.8s; }
+
+/* ===== HERO GRADIENT TEXT ===== */
+.hero-title {
+    background: linear-gradient(135deg, #f0f0f5 30%, var(--accent) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* ===== PREMIUM GLOW EFFECTS ===== */
+.stat-item:hover .stat-number { color: var(--accent); transition: color var(--transition); }
+.material-item:hover { background: var(--bg-card-hover); }
+.login-card { box-shadow: 0 8px 40px rgba(0,0,0,0.4); }
+.dash-save-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+/* ===== BODY RELATIVE FOR AMBIENT ===== */
+body { position: relative; z-index: 1; }

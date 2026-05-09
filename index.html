@@ -14,6 +14,12 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <!-- Ambient Background -->
+    <div class="ambient-bg">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+    </div>
+
     <!-- Navbar -->
     <nav class="navbar" id="navbar">
         <a href="index.html" class="nav-logo">Zettle</a>
@@ -65,11 +71,13 @@
         <p>© 2026 Zettle. Made with ❤️ for students. Free & open source.</p>
     </footer>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase.js"></script>
     <script src="data.js"></script>
     <script>
         // Render semester grid
         const semGrid = document.getElementById('semester-grid');
-        const totalSemesters = 8; // Total grid slots (some may not have data yet)
+        const totalSemesters = 8;
 
         for (let i = 1; i <= totalSemesters; i++) {
             const card = document.createElement('a');
@@ -83,7 +91,7 @@
             semGrid.appendChild(card);
         }
 
-        // Render stats
+        // Render stats (start with static, then update from Supabase)
         let totalSubjects = 0;
         Object.values(SEMESTERS).forEach(s => totalSubjects += s.courses.length);
 
@@ -97,17 +105,28 @@
 
         const statsBar = document.getElementById('stats-bar');
         const stats = [
-            { num: Object.keys(SEMESTERS).length, label: 'Semesters' },
-            { num: totalSubjects, label: 'Subjects' },
-            { num: totalQP || '—', label: 'QP Papers' },
-            { num: totalNotes || '—', label: 'Notes PDFs' },
+            { num: Object.keys(SEMESTERS).length, label: 'Semesters', id: 'stat-semesters' },
+            { num: totalSubjects, label: 'Subjects', id: 'stat-subjects' },
+            { num: totalQP || '—', label: 'QP Papers', id: 'stat-qp' },
+            { num: totalNotes || '—', label: 'Notes PDFs', id: 'stat-notes' },
         ];
         stats.forEach(s => {
             const el = document.createElement('div');
             el.className = 'stat-item';
-            el.innerHTML = `<div class="stat-number">${s.num}</div><div class="stat-label">${s.label}</div>`;
+            el.innerHTML = `<div class="stat-number" id="${s.id}">${s.num}</div><div class="stat-label">${s.label}</div>`;
             statsBar.appendChild(el);
         });
+
+        // Fetch live stats from Supabase
+        async function fetchLiveStats() {
+            try {
+                const { count: qpCount } = await supabaseClient.from('materials').select('*', { count: 'exact', head: true }).eq('category', 'qp');
+                const { count: notesCount } = await supabaseClient.from('materials').select('*', { count: 'exact', head: true }).eq('category', 'notes');
+                if (qpCount !== null) document.getElementById('stat-qp').textContent = (totalQP + qpCount) || '—';
+                if (notesCount !== null) document.getElementById('stat-notes').textContent = (totalNotes + notesCount) || '—';
+            } catch (e) { console.error('Stats fetch error:', e); }
+        }
+        fetchLiveStats();
     </script>
     <script>
         if ('serviceWorker' in navigator) {
