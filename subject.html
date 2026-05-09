@@ -13,6 +13,12 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <!-- Ambient Background -->
+    <div class="ambient-bg">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+    </div>
+
     <!-- Navbar -->
     <nav class="navbar">
         <a href="index.html" class="nav-logo">Zettle</a>
@@ -139,8 +145,9 @@
                 html += '<div class="material-list">';
                 filtered.forEach(m => {
                     const badge = (m.type || 'pdf').toUpperCase();
+                    const viewerUrl = `viewer.html?file=${encodeURIComponent(m.file)}&name=${encodeURIComponent(m.name)}&course=${encodeURIComponent(course.title)}`;
                     html += `
-                        <div class="material-item">
+                        <a href="${viewerUrl}" class="material-item" style="text-decoration:none;color:inherit;">
                             <div class="material-icon">${SVG.file}</div>
                             <div class="material-info">
                                 <div class="material-title">${m.name}</div>
@@ -148,9 +155,9 @@
                             </div>
                             <div class="material-actions">
                                 <span class="material-badge">${badge}</span>
-                                <a href="${m.file}" download class="material-download" title="Download">${SVG.download}</a>
+                                <a href="${m.file}" download class="material-download" title="Download" onclick="event.stopPropagation();">${SVG.download}</a>
                             </div>
-                        </div>`;
+                        </a>`;
                 });
 
                 // Placeholder rows (loading hint)
